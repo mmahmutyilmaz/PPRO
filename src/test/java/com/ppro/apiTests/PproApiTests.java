@@ -2,6 +2,7 @@ package com.ppro.apiTests;
 
 import com.ppro.utilities.ExcelUtil;
 import io.restassured.http.ContentType;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -41,6 +42,24 @@ public class PproApiTests {
         assertEquals(response.statusCode(), 200);
         assertEquals(response.contentType(), "text/plain; charset=utf-8");
         assertTrue(response.body().asString().contains("Transaction succeeded"));
+
+        JsonPath jsonPath=response.jsonPath();
+        String orderIdStr=jsonPath.getString("data[0].orderId");
+        Integer orderId=Integer.parseInt(orderIdStr);
+        System.out.println("orderId=================> "+orderId);
+        ExcelUtil.waitFor(1);
+        //I have moved Get request here to benefit from iteration
+        Response response2 = given()
+                .header("api_key", "secureKey")
+                .and()
+                .queryParam("orderId", orderId)
+                .when().get("https://automation-test-api.netlify.app/.netlify/functions/payment/");
+
+        assertEquals(response2.statusCode(), 200);
+        System.out.println("response2.statusCode()=========>"+response2.statusCode());
+        assertEquals(response2.contentType(), "text/plain; charset=utf-8");
+        assertTrue(response2.body().asString().contains("Pending"));
+        ExcelUtil.waitFor(1);
     }
 
 
@@ -68,20 +87,7 @@ public class PproApiTests {
                 .when()
                 .post("https://automation-test-api.netlify.app/.netlify/functions/payment");
 
-
         assertEquals(response.statusCode(), 400);
         assertEquals(response.contentType(), "text/plain; charset=utf-8");
-    }
-    @Test
-    public void GetRequest() {
-        Response response = given()
-                .header("api_key", "secureKey")
-                .and()
-                .queryParam("orderId", 56932)
-                .when().get("https://automation-test-api.netlify.app/.netlify/functions/payment/");
-
-        assertEquals(response.statusCode(), 200);
-        assertEquals(response.contentType(), "text/plain; charset=utf-8");
-        assertTrue(response.body().asString().contains("Pending"));
     }
 }

@@ -40,7 +40,13 @@ public class ExcelUtil {
         return data;
 
     }
-
+    public static void waitFor(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
     public int columnCount() {
         return workSheet.getRow(0).getLastCellNum();
     }
@@ -48,5 +54,7 @@ public class ExcelUtil {
     public int rowCount() {
         return workSheet.getLastRowNum()+1;
     }
+
+
 
 }
